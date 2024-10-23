@@ -1,0 +1,25 @@
+const contentful = require('contentful-management');
+
+const client = contentful.createClient({
+  accessToken: '<Your_Management_API_Access_Token>',
+});
+
+client.getSpace('<Your_Space_ID>')
+  .then((space) => space.getEnvironment('<Your_Environment_ID>')) // Use 'master' if you're not using environments
+  .then((environment) => environment.getContentType('assets')) // Fetch the 'Assets' content model
+  .then((contentType) => {
+    // Find the 'indicationPurpose' field in the content model
+    const indicationPurposeField = contentType.fields.find(field => field.id === 'indicationPurpose');
+    
+    // Replace the value "LUDO" with "Ludo" in the allowed values list
+    const allowedValues = indicationPurposeField.items.validations[0].in;
+    const index = allowedValues.indexOf("LUDO");
+    if (index > -1) {
+      allowedValues[index] = "Ludo";  // Update the value
+    }
+
+    return contentType.update();  // Update the content type
+  })
+  .then((updatedContentType) => updatedContentType.publish())  // Publish the updated content type
+  .then(() => console.log('Content type updated and published successfully.'))
+  .catch((error) => console.error(error));
